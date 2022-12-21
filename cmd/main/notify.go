@@ -23,37 +23,15 @@ func toNotify(trade model.Trade, tradeHash string) error {
 	resp, err := client.PostForm(trade.NotifyUrl, data)
 	if err != nil {
 
-		return toNotifyFailed(trade)
+		return setNotifyFailed(trade)
 	}
 
 	if resp.StatusCode == http.StatusOK {
 
-		return toNotifySucc(trade)
+		return setNotifySucc(trade)
 	}
 
-	return toNotifyFailed(trade)
-}
-
-func toNotifySucc(trade model.Trade) error {
-	trade.State = model.TradeStateComplete
-	trade.NotifyRetry += 1
-	trade.NotifyTime.Time = time.Now()
-	trade.NotifyTime.Valid = true
-
-	db.Save(&trade)
-
-	return db.Error
-}
-
-func toNotifyFailed(trade model.Trade) error {
-	trade.State = model.TradeStateNotifyFailed
-	trade.NotifyRetry += 1
-	trade.NotifyTime.Time = time.Now()
-	trade.NotifyTime.Valid = true
-
-	db.Save(&trade)
-
-	return db.Error
+	return setNotifyFailed(trade)
 }
 
 func toNotifyRetry() {
@@ -69,4 +47,26 @@ func toNotifyRetry() {
 
 		go toNotify(trade, "")
 	}
+}
+
+func setNotifySucc(trade model.Trade) error {
+	trade.State = model.TradeStateComplete
+	trade.NotifyRetry += 1
+	trade.NotifyTime.Time = time.Now()
+	trade.NotifyTime.Valid = true
+
+	db.Save(&trade)
+
+	return db.Error
+}
+
+func setNotifyFailed(trade model.Trade) error {
+	trade.State = model.TradeStateNotifyFailed
+	trade.NotifyRetry += 1
+	trade.NotifyTime.Time = time.Now()
+	trade.NotifyTime.Valid = true
+
+	db.Save(&trade)
+
+	return db.Error
 }
