@@ -1,8 +1,8 @@
 package main
 
 import (
+	"USDT-TRC20-NotifyApi/log"
 	"USDT-TRC20-NotifyApi/model"
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -10,14 +10,26 @@ import (
 )
 
 const (
+	LogLevel          = "debug"
+	LogOutput         = "/var/log/main.log"
 	TimeOut           = time.Second * 5
 	TronScanApi       = "https://apilist.tronscan.org/"
-	MaxExpireTime     = 1200 * 3 * 24
+	MaxExpireTime     = 1200
 	MinExpireTime     = 180
 	DefaultExpireTime = 600
 )
 
 var dbPath = getWd() + "/main.db"
+
+func init() {
+	log.Init(LogLevel, LogOutput)
+
+	_, err := os.Stat(dbPath)
+	if err != nil {
+
+		log.Fatal("数据文件丢失，请尝试重新安装！")
+	}
+}
 
 func main() {
 	go heartbeat()
@@ -61,18 +73,16 @@ func dealWith() {
 			for _, trade := range trades {
 				for _, itm := range list {
 					if trade.Amount == itm.Amount && trade.ExpireTime.UnixMilli() >= itm.Time.UnixMilli() {
-						go toNotify(trade, itm.TradeHash)
+						go func() {
+							err := toNotify(trade, itm.TradeHash)
+							if err != nil {
+
+								log.Println(err.Error())
+							}
+						}()
 					}
 				}
 			}
 		}(v.Address)
-	}
-}
-
-func init() {
-	_, err := os.Stat(dbPath)
-	if err != nil {
-
-		log.Fatalln("数据文件丢失，请尝试重新安装！")
 	}
 }

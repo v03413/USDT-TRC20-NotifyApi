@@ -1,6 +1,7 @@
 package main
 
 import (
+	"USDT-TRC20-NotifyApi/log"
 	"USDT-TRC20-NotifyApi/model"
 	"math"
 	"net/http"
@@ -45,7 +46,13 @@ func toNotifyRetry() {
 			continue
 		}
 
-		go toNotify(trade, "")
+		trade := trade
+		go func() {
+			err := toNotify(trade, "")
+			if err != nil {
+				log.Println(err.Error())
+			}
+		}()
 	}
 }
 
