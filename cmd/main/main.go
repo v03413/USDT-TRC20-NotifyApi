@@ -3,6 +3,7 @@ package main
 import (
 	"USDT-TRC20-NotifyApi/log"
 	"USDT-TRC20-NotifyApi/model"
+	"fmt"
 	"os"
 	"os/signal"
 	"runtime"
@@ -10,6 +11,7 @@ import (
 )
 
 const (
+	Version           = "0.1"
 	LogLevel          = "debug"
 	LogOutput         = "/var/log/main.log"
 	TimeOut           = time.Second * 5
@@ -32,6 +34,9 @@ func init() {
 }
 
 func main() {
+	log.Println(fmt.Sprintf("当前版本：%s", Version))
+	log.Println("开源地址：https://github.com/v03413/USDT-TRC20-NotifyApi")
+
 	go heartbeat()
 
 	{
