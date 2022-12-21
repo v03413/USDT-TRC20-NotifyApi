@@ -34,33 +34,38 @@ func heartbeat() {
 	go start()
 
 	for range time.Tick(time.Second * 3) {
-		var rows []model.Trade
-		db.Distinct("address").Where("state = ? and expire_time >= ?", model.TradeStateUnconfirmed, time.Now()).Find(&rows)
-		for _, v := range rows {
-			go func(address string) {
-				list, err := getTransferList(address)
-				if err != nil {
+		go toNotifyRetry()
+		go dealWith()
+	}
+}
 
-					log.Println(err.Error())
-					return
-				}
-				if len(list) == 0 {
+func dealWith() {
+	var rows []model.Trade
+	db.Distinct("address").Where("state = ? and expire_time >= ?", model.TradeStateUnconfirmed, time.Now()).Find(&rows)
+	for _, v := range rows {
+		go func(address string) {
+			list, err := getTransferList(address)
+			if err != nil {
 
-					return
-				}
+				log.Println(err.Error())
+				return
+			}
+			if len(list) == 0 {
 
-				// 获取交易订单
-				var trades []model.Trade
-				db.Where("address = ? and state = ? and expire_time >= ?", address, model.TradeStateUnconfirmed, time.Now()).Find(&trades)
-				for _, trade := range trades {
-					for _, itm := range list {
-						if trade.Amount == itm.Amount && trade.ExpireTime.UnixMilli() >= itm.Time.UnixMilli() {
-							go toNotify(trade, itm.TradeHash)
-						}
+				return
+			}
+
+			// 获取交易订单
+			var trades []model.Trade
+			db.Where("address = ? and state = ? and expire_time >= ?", address, model.TradeStateUnconfirmed, time.Now()).Find(&trades)
+			for _, trade := range trades {
+				for _, itm := range list {
+					if trade.Amount == itm.Amount && trade.ExpireTime.UnixMilli() >= itm.Time.UnixMilli() {
+						go toNotify(trade, itm.TradeHash)
 					}
 				}
-			}(v.Address)
-		}
+			}
+		}(v.Address)
 	}
 }
 

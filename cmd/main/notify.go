@@ -2,6 +2,7 @@ package main
 
 import (
 	"USDT-TRC20-NotifyApi/model"
+	"math"
 	"net/http"
 	"net/url"
 	"time"
@@ -53,4 +54,19 @@ func toNotifyFailed(trade model.Trade) error {
 	db.Save(&trade)
 
 	return db.Error
+}
+
+func toNotifyRetry() {
+	var trades []model.Trade
+	db.Where("state = ?", model.TradeStateNotifyFailed, time.Now()).Find(&trades)
+	for _, trade := range trades {
+		s := TimeOut.Seconds() * math.Pow(2, float64(trade.NotifyRetry))
+		LastNotifyTime := trade.NotifyTime.Time.Unix()
+		if time.Now().Unix() < int64(s)+LastNotifyTime {
+
+			continue
+		}
+
+		go toNotify(trade, "")
+	}
 }
