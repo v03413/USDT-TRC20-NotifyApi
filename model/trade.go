@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	TradeStateUnconfirmed  = -1
+	TradeStateNotifyFailed = 0
+	TradeStateComplete     = 1
+)
+
 type Trade struct {
 	Id            uint `gorm:"primaryKey"`
 	State         int

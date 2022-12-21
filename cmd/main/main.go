@@ -17,12 +17,6 @@ const (
 	DefaultExpireTime = 600
 )
 
-const (
-	StateUnconfirmed  = -1
-	StateNotifyFailed = 0
-	StateComplete     = 1
-)
-
 var dbPath = getWd() + "/main.db"
 
 func main() {
@@ -41,7 +35,7 @@ func heartbeat() {
 
 	for range time.Tick(time.Second * 3) {
 		var rows []model.Trade
-		db.Distinct("address").Where("state = ? and expire_time >= ?", StateUnconfirmed, time.Now()).Find(&rows)
+		db.Distinct("address").Where("state = ? and expire_time >= ?", model.TradeStateUnconfirmed, time.Now()).Find(&rows)
 		for _, v := range rows {
 			go func(address string) {
 				list, err := getTransferList(address)
@@ -57,7 +51,7 @@ func heartbeat() {
 
 				// 获取交易订单
 				var trades []model.Trade
-				db.Where("address = ? and state = ? and expire_time >= ?", address, StateUnconfirmed, time.Now()).Find(&trades)
+				db.Where("address = ? and state = ? and expire_time >= ?", address, model.TradeStateUnconfirmed, time.Now()).Find(&trades)
 				for _, trade := range trades {
 					for _, itm := range list {
 						if trade.Amount == itm.Amount && trade.ExpireTime.UnixMilli() >= itm.Time.UnixMilli() {
@@ -76,8 +70,4 @@ func init() {
 
 		log.Fatalln("数据文件丢失，请尝试重新安装！")
 	}
-
-	//log.Println(os.ReadFile("./install.sql"))
-	//log.Println(TronScanApi)
-	//log.Println(StateUnconfirmed, StateNotifyFailed, StateComplete)
 }

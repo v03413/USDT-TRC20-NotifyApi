@@ -34,7 +34,7 @@ func toNotify(trade model.Trade, tradeHash string) error {
 }
 
 func toNotifySucc(trade model.Trade) error {
-	trade.State = StateComplete
+	trade.State = model.TradeStateComplete
 	trade.NotifyRetry += 1
 	trade.NotifyTime.Time = time.Now()
 	trade.NotifyTime.Valid = true
@@ -45,7 +45,7 @@ func toNotifySucc(trade model.Trade) error {
 }
 
 func toNotifyFailed(trade model.Trade) error {
-	trade.State = StateNotifyFailed
+	trade.State = model.TradeStateNotifyFailed
 	trade.NotifyRetry += 1
 	trade.NotifyTime.Time = time.Now()
 	trade.NotifyTime.Valid = true

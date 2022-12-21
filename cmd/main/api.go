@@ -106,7 +106,7 @@ func submit(c *gin.Context) {
 	}
 
 	db.Create(&model.Trade{
-		State:      StateUnconfirmed,
+		State:      model.TradeStateUnconfirmed,
 		Amount:     amount,
 		Address:    address,
 		TradeNo:    tradeNo,
