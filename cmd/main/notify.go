@@ -3,6 +3,7 @@ package main
 import (
 	"USDT-TRC20-NotifyApi/log"
 	"USDT-TRC20-NotifyApi/model"
+	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -64,6 +65,8 @@ func setNotifySucc(trade model.Trade) error {
 
 	db.Save(&trade)
 
+	log.Println(fmt.Sprintf("回调成功：%s", trade.TradeNo))
+
 	return db.Error
 }
 
@@ -74,6 +77,8 @@ func setNotifyFailed(trade model.Trade) error {
 	trade.NotifyTime.Valid = true
 
 	db.Save(&trade)
+
+	log.Println(fmt.Sprintf("回调失败：%s", trade.TradeNo))
 
 	return db.Error
 }

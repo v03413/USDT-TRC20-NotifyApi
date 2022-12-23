@@ -114,5 +114,7 @@ func submit(c *gin.Context) {
 		ExpireTime: time.Now().Add(time.Second * time.Duration(expire)),
 	})
 
+	log.Println(fmt.Printf("新订单：%s", tradeNo))
+
 	c.JSON(200, respJson{Code: 200, Msg: "success", TradeNo: tradeNo})
 }
